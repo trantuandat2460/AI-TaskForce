@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KMS v5.61 · Bản demo tương tác</title>
+<style>
+  :root{
+    --bg:#0e1726; --panel:#13203a; --panel2:#1b2c4d; --ink:#e8eefc; --muted:#9fb3d4;
+    --line:#27406b; --accent:#4da3ff; --accent2:#7c5cff;
+    --c1:#34c77b; --c2:#f2b03d; --c3:#ff5d6c;
+    --ok:#34c77b; --warn:#f2b03d; --bad:#ff5d6c;
+    --chip:#22335a;
+    --radius:14px; --maxw:1180px;
+    font-synthesis:none;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:linear-gradient(180deg,#0b1322,#0e1726 240px);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.6;font-size:15.5px}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{display:grid;grid-template-columns:248px 1fr;max-width:var(--maxw);margin:0 auto;gap:0}
+  /* sidebar */
+  nav.side{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:22px 14px;border-right:1px solid var(--line)}
+  nav.side .brand{font-weight:700;font-size:18px;letter-spacing:.3px;margin-bottom:2px}
+  nav.side .ver{display:inline-block;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06101f;
+    font-weight:800;border-radius:999px;padding:2px 10px;font-size:12px;margin:6px 0 16px}
+  nav.side a{display:block;color:var(--muted);padding:7px 10px;border-radius:9px;font-size:13.5px;border-left:2px solid transparent}
+  nav.side a:hover{background:var(--panel);color:var(--ink)}
+  nav.side a.active{background:var(--panel2);color:#fff;border-left-color:var(--accent)}
+  nav.side .grp{margin:14px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#6f86ad}
+  /* content */
+  main{padding:34px 38px 90px;min-width:0}
+  header.hero{margin-bottom:26px}
+  header.hero h1{font-size:30px;margin:0 0 6px;line-height:1.2}
+  header.hero p.sub{color:var(--muted);margin:0;max-width:760px}
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .pill{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12.5px;color:var(--muted)}
+  section{padding:30px 0;border-top:1px solid var(--line)}
+  section h2{font-size:21px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  section h2 .num{color:var(--accent);font-weight:800;font-size:14px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:2px 8px}
+  section .lead{color:var(--muted);margin:0 0 18px;max-width:820px}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 17px}
+  .card h3{margin:0 0 6px;font-size:15.5px}
+  .card p{margin:0;color:var(--muted);font-size:13.7px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 7px;margin-bottom:8px}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-weight:800;border-radius:8px;padding:3px 10px;font-size:13px}
+  .b-c1{background:rgba(52,199,123,.16);color:var(--c1);border:1px solid rgba(52,199,123,.4)}
+  .b-c2{background:rgba(242,176,61,.16);color:var(--c2);border:1px solid rgba(242,176,61,.4)}
+  .b-c3{background:rgba(255,93,108,.16);color:var(--c3);border:1px solid rgba(255,93,108,.4)}
+  code{background:#0b1730;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px;color:#bcd3ff;
+    font-family:"Cascadia Code",Consolas,monospace}
+  /* flow */
+  .flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+  .step{flex:1 1 170px;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;
+    cursor:pointer;transition:.15s;position:relative}
+  .step:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .step.active{border-color:var(--accent);background:var(--panel2);box-shadow:0 0 0 1px var(--accent)}
+  .step .n{font-size:11px;color:var(--accent);font-weight:800}
+  .step .t{font-size:13.5px;font-weight:600;margin-top:2px}
+  .step.gate{border-color:rgba(255,93,108,.5)}
+  .stepinfo{margin-top:14px;background:#0b1730;border:1px solid var(--line);border-radius:12px;padding:16px;min-height:70px}
+  .stepinfo .k{color:var(--accent);font-weight:700}
+  /* lifecycle */
+  .life{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .lstate{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;font-weight:700;font-size:13.5px;transition:.15s}
+  .lstate:hover{border-color:var(--accent)}
+  .lstate.active{background:var(--accent);color:#06101f;border-color:var(--accent)}
+  .lstate.serve{box-shadow:inset 0 0 0 2px rgba(52,199,123,.5)}
+  .arrow{color:var(--muted);font-weight:800}
+  .lifeinfo{margin-top:14px;background:#0b1730;border:1px solid var(--line);border-radius:12px;padding:16px}
+  .kv{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;font-size:13.7px}
+  .kv .k{color:var(--muted)}
+  /* matrix */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .fbtn{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:600}
+  .fbtn.active{background:var(--accent);color:#06101f;border-color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:13.6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:#cfe0ff;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px}
+  tr:last-child td{border-bottom:none}
+  .verd{font-weight:800;border-radius:6px;padding:1px 8px;font-size:12px;white-space:nowrap}
+  .v-adopt{background:rgba(52,199,123,.16);color:var(--c1)}
+  .v-integrate{background:rgba(77,163,255,.16);color:var(--accent)}
+  .v-concept{background:rgba(242,176,61,.16);color:var(--c2)}
+  .v-no{background:rgba(159,179,212,.12);color:var(--muted)}
+  /* accordion */
+  .acc{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .acc+.acc{margin-top:10px}
+  .acc .head{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:600}
+  .acc .head:hover{background:var(--panel2)}
+  .acc .head .lk{color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
+  .acc .body{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 16px;color:var(--muted);font-size:13.8px}
+  .acc.open .body{max-height:420px;padding:0 16px 16px}
+  .acc .chev{transition:.2s;color:var(--muted)}
+  .acc.open .chev{transform:rotate(90deg)}
+  /* frontmatter map */
+  .fm{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fmcol h4{margin:0 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .fmkey{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin-bottom:7px;cursor:pointer;font-family:"Cascadia Code",Consolas,monospace;font-size:12.8px;transition:.12s}
+  .fmkey:hover{border-color:var(--accent)}
+  .fmkey.hot{border-color:var(--accent);background:var(--panel2);box-shadow:0 0 0 1px var(--accent)}
+  .fmtarget{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin-bottom:7px;font-size:13px;opacity:.45;transition:.12s}
+  .fmtarget.hot{opacity:1;border-color:var(--c1);background:var(--panel2)}
+  .note{background:rgba(124,92,255,.1);border:1px solid rgba(124,92,255,.4);border-radius:12px;padding:14px 16px;color:#d6ccff;font-size:13.8px}
+  .warnbox{background:rgba(255,93,108,.08);border:1px solid rgba(255,93,108,.35);border-radius:12px;padding:14px 16px;color:#ffd2d6;font-size:13.8px}
+  footer{color:#6f86ad;font-size:12.5px;padding:24px 0 0;border-top:1px solid var(--line);margin-top:10px}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}nav.side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    .g2,.g3,.g4,.fm{grid-template-columns:1fr}main{padding:22px 16px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="side">
+    <div class="brand">VSI · KMS</div>
+    <span class="ver">v5.61 · demo tương tác</span>
+    <div class="grp">Điều hướng</div>
+    <a href="#tongquan" class="active">Tổng quan & v5.61</a>
+    <a href="#kientruc">Kiến trúc · luồng truy vấn</a>
+    <a href="#ranhgioi">Bốn ranh giới bảo mật</a>
+    <a href="#phanloai">Phân loại C1/C2/C3</a>
+    <a href="#vongdoi">Vòng đời tri thức (A.9)</a>
+    <a href="#nangluc">S11 · Năng lực từ PLM</a>
+    <a href="#matran">Ma trận áp dụng</a>
+    <a href="#frontmatter">Frontmatter vsi_* (A.3)</a>
+    <a href="#ranhgioi2">Cái KHÔNG đổi (11.11)</a>
+    <div class="grp">Tài liệu</div>
+    <a href="KMS-v5.61.md">📄 KMS-v5.61.md</a>
+    <a href="PLM-Feature-Evaluation-for-KMS.md">📄 Đánh giá PLM</a>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <h1>KMS v5.61 — Quản trị vòng đời tri thức kế thừa từ PLM</h1>
+      <p class="sub">Bản demo tương tác cho hội đồng đánh giá. v5.61 = v5.6 + các khuôn mẫu controlled-content
+      đúc kết từ khảo sát hệ PLM <b>CIM Database</b>, layer lên kiến trúc sẵn có <i>mà không nới bất kỳ bất biến bảo mật nào</i>.</p>
+      <div class="pillrow">
+        <span class="pill">Self-hosted / air-gapped</span>
+        <span class="pill">Permission-aware RAG</span>
+        <span class="pill">Qdrant · bge-m3 · bge-reranker-v2-m3</span>
+        <span class="pill">Fail-closed · highest-wins</span>
+        <span class="pill">Director · Viettel Semiconductor (VSI) · WS4</span>
+      </div>
+    </header>
+
+    <!-- TONG QUAN -->
+    <section id="tongquan">
+      <h2><span class="num">v5.61</span> Tổng quan & những thay đổi</h2>
+      <p class="lead">CIM Database <b>không</b> phải hệ tri thức/RAG/LLM và <b>không</b> thay thế KMS — nó thiếu
+      truy hồi-lọc-quyền-trước-LLM, chính là giá trị lõi của KMS. v5.61 chỉ <b>mượn các khuôn mẫu đã kiểm chứng</b>.</p>
+      <div class="grid g3">
+        <div class="card"><span class="tag v-adopt">ÁP DỤNG</span><h3>Nhãn phân loại + vòng đời + ratify</h3>
+          <p>Gắn nhãn C1/C2/C3 trên đối tượng, máy trạng thái vòng đời, cổng phê chuẩn của Data Steward.</p></div>
+        <div class="card"><span class="tag v-adopt">ÁP DỤNG</span><h3>Versioning · audit · facet</h3>
+          <p>Phiên bản bất biến + khoá biên tập, audit hash-chain tamper-evidence, truy xuất facet metadata-first.</p></div>
+        <div class="card"><span class="tag v-integrate">TÍCH HỢP</span><h3>SSO/OIDC · nguồn nạp PLM</h3>
+          <p>Tích hợp danh tính doanh nghiệp; PLM như nguồn nạp có quản trị, mang theo nhãn phân loại.</p></div>
+      </div>
+      <div class="note" style="margin-top:14px">⚖️ <b>Khẳng định ranh giới.</b> Bốn ranh giới tuyệt đối, fail-closed, highest-wins
+      và <code>min(clearance, limit)</code> vẫn do <b>PEP/PDP của KMS</b> thực thi. Mọi tích hợp PLM bị chặn điều kiện:
+      bắt buộc <b>TLS</b>, xác nhận <b>air-gap/on-prem</b>, và kiểm chứng mô hình truy cập (xem 11.11).</div>
+    </section>
+
+    <!-- KIEN TRUC -->
+    <section id="kientruc">
+      <h2><span class="num">S2</span> Kiến trúc — luồng một câu hỏi</h2>
+      <p class="lead">Mỗi lượt hỏi đi qua 8 bước. <b>Bấm vào một bước</b> để xem chi tiết. Lọc quyền là <b>lớp đầu tiên</b> và là hàng rào cứng — xảy ra <b>trước</b> khi gọi LLM.</p>
+      <div class="flow" id="flow"></div>
+      <div class="stepinfo" id="stepinfo">Bấm vào một bước ở trên…</div>
+    </section>
+
+    <!-- RANH GIOI -->
+    <section id="ranhgioi">
+      <h2><span class="num">S3</span> Bốn ranh giới bảo mật tuyệt đối</h2>
+      <p class="lead">Không thao tác nào được phép vượt qua bốn lằn ranh này. v5.61 phục tùng tất cả.</p>
+      <div class="grid g4" id="boundaries"></div>
+    </section>
+
+    <!-- PHAN LOAI -->
+    <section id="phanloai">
+      <h2><span class="num">S3</span> Ba mức phân loại & highest-wins</h2>
+      <p class="lead">Mọi nội dung mang một nhãn. Người dùng chỉ thấy đến mức <code>min(clearance, limit)</code>.
+      Một kết quả chạm tới mức cao nhất sẽ bị xử lý theo mức cao nhất (<b>highest-wins</b>).</p>
+      <div class="grid g3">
+        <div class="card"><span class="badge b-c1">C1 · Public</span><p style="margin-top:8px">Tri thức công khai hoặc được phép chia sẻ.</p></div>
+        <div class="card"><span class="badge b-c2">C2 · Internal</span><p style="margin-top:8px">Tài liệu nội bộ. Phần lớn ~300 người dùng ở mức này trở xuống.</p></div>
+        <div class="card"><span class="badge b-c3">C3 · Air-gapped core-IP</span><p style="margin-top:8px">Core-IP nhạy cảm nhất, sống trong enclave cách ly. Chỉ một nhóm nhỏ có tên.</p></div>
+      </div>
+      <div class="warnbox" style="margin-top:14px"><b>highest-wins:</b> khi một câu trả lời / hội thoại chạm tới nội dung C3,
+      toàn bộ được đối xử như C3 — không có "pha loãng" xuống mức thấp.</div>
+    </section>
+
+    <!-- VONG DOI -->
+    <section id="vongdoi">
+      <h2><span class="num">A.9</span> Máy trạng thái vòng đời tri thức <span class="pill" style="font-size:11px">v5.61 — đang xây</span></h2>
+      <p class="lead">Trạng thái của một concept OKF. <b>Bấm một trạng thái</b> để xem chi tiết. Chỉ <b>Published</b> mới được index & truy hồi
+      (viền xanh). Ratify gate là chuyển trạng thái <b>chặn</b>, fail-closed.</p>
+      <div class="life" id="life"></div>
+      <div class="lifeinfo" id="lifeinfo">Bấm một trạng thái…</div>
+    </section>
+
+    <!-- NANG LUC -->
+    <section id="nangluc">
+      <h2><span class="num">S11</span> Năng lực kế thừa từ PLM</h2>
+      <p class="lead">11 tiểu mục tích hợp. Mỗi mục nêu <i>năng lực PLM → điểm tích hợp trong KMS</i>. Bấm để mở.</p>
+      <div id="caps"></div>
+    </section>
+
+    <!-- MA TRAN -->
+    <section id="matran">
+      <h2><span class="num">11.13</span> Ma trận áp dụng PLM → KMS</h2>
+      <p class="lead">16 tính năng PLM đã khảo sát. Lọc theo phán quyết:</p>
+      <div class="filters" id="filters"></div>
+      <table id="matrix"><thead><tr><th>#</th><th>Tính năng PLM</th><th>Ánh xạ KMS</th><th>Phán quyết</th><th>Tiểu mục</th></tr></thead>
+        <tbody id="matrixbody"></tbody></table>
+    </section>
+
+    <!-- FRONTMATTER -->
+    <section id="frontmatter">
+      <h2><span class="num">A.3</span> Frontmatter <code>vsi_*</code> → nơi nó "đáp xuống"</h2>
+      <p class="lead">"Metadata-as-code": nhãn bảo mật sống cùng nội dung. <b>Bấm một khoá</b> bên trái để xem vai trò & đích payload.</p>
+      <div class="fm">
+        <div class="fmcol"><h4>Khoá frontmatter</h4><div id="fmkeys"></div></div>
+        <div class="fmcol"><h4>Vai trò bảo mật / routing</h4><div id="fmtargets"></div></div>
+      </div>
+    </section>
+
+    <!-- RANH GIOI 2 -->
+    <section id="ranhgioi2">
+      <h2><span class="num">11.11</span> Cái KHÔNG đổi & điều kiện bắt buộc</h2>
+      <div class="grid g2">
+        <div class="card"><h3>✅ Vẫn do PEP/PDP của KMS thực thi</h3>
+          <p>Bốn ranh giới · fail-closed · highest-wins · <code>min(clearance, limit)</code> · lọc-quyền-trước-LLM ·
+          chặn cứng credential · cô lập corpus. PLM không phải PDP truy cập.</p></div>
+        <div class="card"><h3>⛔ Điều kiện chặn trước khi tích hợp</h3>
+          <p>(a) bắt buộc <b>TLS</b> — bản khảo sát chạy HTTP trần; (b) xác nhận <b>on-prem/air-gap</b> với nhà cung cấp;
+          (c) kiểm chứng mô hình truy cập biểu diễn được highest-wins + fail-closed + <code>min(clearance,limit)</code>.</p></div>
+      </div>
+    </section>
+
+    <footer>
+      Bản demo tương tác tự sinh từ <b>KMS-v5.61.md</b> (đã hợp nhất tính năng PLM) · CIM Database = sản phẩm của CONTACT Software ·
+      Đây là bản dựng thay thế cho skill <code>vsi-interactive-doc</code> (chưa cài trên máy). Mọi nội dung là tài liệu thiết kế nội bộ VSI.
+    </footer>
+  </main>
+</div>
+
+<script>
+const FLOW=[
+ {n:"1",t:"Danh tính qua header",d:"Open WebUI gắn <code>X-OpenWebUI-User-*</code>. Open WebUI KHÔNG quyết định quyền — chỉ khai báo 'đây là ai'. Proxy chỉ tin header khi đến qua đường tin cậy (ranh giới tin cậy danh tính, S3)."},
+ {n:"2",t:"Phân giải permission_group",d:"Proxy phân giải nhóm quyền của user qua registry <code>user_groups</code>. Không phân giải được nhóm nào ⇒ kết quả RỖNG + áp <b>deny</b> (fail-closed)."},
+ {n:"3",t:"Nạp trạng thái hội thoại",d:"Nạp state từ PostgreSQL, giới hạn theo đúng chủ phiên (session owner)."},
+ {n:"4",t:"Viết lại câu hỏi",d:"Rewrite câu hỏi đa lượt thành một câu độc lập, đầy đủ ngữ cảnh — trước khi truy xuất."},
+ {n:"5",t:"Funnel truy xuất (lọc quyền)",gate:true,d:"<b class='k'>Hàng rào cứng.</b> Phễu năm lớp lấy CHỈ ngữ cảnh được phép. <b>PEP-1</b> (MatchAny <code>permission_group</code>) là lớp đầu tiên, server-side tại vector store. Facet (v5.61) áp BÊN TRONG hàng rào — không nới quyền."},
+ {n:"6",t:"Chèn ngữ cảnh",d:"Chèn ngữ cảnh vào system message — CHỈ như dữ liệu, không phải mệnh lệnh (context-fencing, S3)."},
+ {n:"7",t:"Sinh câu trả lời",d:"Gọi LLM (sau khi đã lọc quyền), định tuyến theo lane (C3 ⇒ in-lane, không egress)."},
+ {n:"8",t:"Lưu vết bền vững",d:"Ghi tin nhắn, citation, audit vào PostgreSQL. Audit hash-chain (v5.61: ghi mọi chuyển trạng thái vòng đời)."},
+];
+const BOUND=[
+ {n:"1",t:"Phân loại + highest-wins",c:"b-c2",d:"Mọi nội dung gán C1/C2/C3; kết quả/hội thoại kế thừa mức cao nhất nó chạm tới."},
+ {n:"2",t:"Enclave air-gapped C3",c:"b-c3",d:"Toàn vòng đời C3 chạy in-lane, KHÔNG bao giờ egress khỏi vùng cách ly."},
+ {n:"3",t:"Chặn cứng credential",c:"b-c3",d:"Nội dung chứa bí mật (mật khẩu/khoá/token) bị chặn cứng ngay khâu nạp — không index, không vào LLM. Cờ + secret scanner."},
+ {n:"4",t:"Ranh giới dữ liệu nhân sự",c:"b-c1",d:"Nội dung mô tả con người vào phạm vi DPIA + RTBF, không xử lý như tài liệu kỹ thuật."},
+];
+const LIFE=[
+ {s:"Draft",serve:false,mean:"Tác giả soạn hoặc auto-enrich/đề bạt từ hội thoại; frontmatter vsi_ có thể chưa đủ.",idx:"Không (≈ quarantined)",to:"→ In-Review",gate:"Đủ trường OKF tối thiểu"},
+ {s:"In-Review",serve:false,mean:"Trong hàng đợi rà soát của Data Steward (workflow Tasks/Forms/Log).",idx:"Không",to:"→ Ratified · → Draft",gate:"Steward xem xét"},
+ {s:"Ratified",serve:false,mean:"Steward đã PHÊ CHUẨN vsi_data_class + vsi_permission_group. Đã ký nhưng CHƯA phục vụ.",idx:"Chưa",to:"→ Published",gate:"RATIFY GATE — chặn, fail-closed"},
+ {s:"Published",serve:true,mean:"Đã upsert vào đúng corpus, trở nên truy hồi được qua funnel S6.",idx:"CÓ ✔",to:"→ Deprecated",gate:"Bản phiên versioned (A.7)"},
+ {s:"Deprecated",serve:true,mean:"Còn truy được nhưng gắn cờ cũ.",idx:"Có (gắn cờ)",to:"→ Retired",gate:"Quyết định steward"},
+ {s:"Retired",serve:false,mean:"Gỡ khỏi index; giữ bản ghi cho audit/replay.",idx:"Không",to:"—",gate:"RTBF / Retention (S3)"},
+];
+const CAPS=[
+ {id:"11.1",t:"Nhãn phân loại trên đối tượng & kế thừa nhãn khi nạp",d:"Chuẩn hoá gắn/hiển thị nhãn C1/C2/C3 tại tầng curate & UI steward; nạp từ nguồn (kể cả PLM) ánh xạ nhãn → vsi_data_class, fail-closed nếu thiếu/không ánh xạ được. Không tạo nhãn ngầm; highest-wins.",lk:"S3 · S4 · A.3"},
+ {id:"11.2",t:"Vòng đời + cổng phê chuẩn (ratify) của Data Steward",d:"Máy trạng thái 5 trạng thái cho concept OKF; chỉ Published mới phục vụ; thuộc tính bảo mật phải được steward ký TRƯỚC khi vào hệ. LLM không bao giờ tự gán phân loại.",lk:"S4 · S5 · S8"},
+ {id:"11.3",t:"Phiên bản · khoá biên tập · dòng dõi",d:"Phiên bản bất biến cho concept curated, check-in/out chống sửa song song, lịch sử nối vào A.7. Replay phải tái-cấp-phép qua PEP hiện tại.",lk:"A.7 · S3"},
+ {id:"11.4",t:"Mô hình tổ chức · vai trò · nhóm quyền",d:"Mô hình tham chiếu quản trị permission_group, clearance, nhóm nhỏ có tên C3. Reject index nếu nhóm không có trong registry (không tạo group ngầm).",lk:"S3 · A.4.1"},
+ {id:"11.5",t:"Nhật ký kiểm toán & tamper-evidence",d:"Xác nhận yêu cầu audit; KMS bổ sung hash-chain với khoá HMAC NGOÀI trust boundary của DB (HSM/append-only/external anchor).",lk:"S3 · A.1/A.2"},
+ {id:"11.6",t:"Truy xuất metadata-first: facet · saved search",d:"Bổ sung lọc facet theo quyền vào phễu năm lớp (S6), áp SAU PEP. Facet không bao giờ nới quyền — chỉ thu nhỏ tập đầu vào bên trong hàng rào.",lk:"S6"},
+ {id:"11.7",t:"Lược đồ tri thức có cấu trúc: template · acceptance criteria",d:"Template OKF có kiểu (metadata-as-code), mở rộng bộ từ vựng + profile vsi_ (A.3); acceptance criteria cho chất lượng concept trước ratify.",lk:"S4 · A.3"},
+ {id:"11.8",t:"Tích hợp danh tính doanh nghiệp (SSO/OIDC · CSRF)",d:"Mẫu tích hợp danh tính tại ranh giới tin cậy; SSO phân giải permission_group nhất quán. Không biến SSO thành PDP thay PEP kép.",lk:"S3"},
+ {id:"11.9",t:"PLM như nguồn nạp có quản trị",d:"Nạp tri thức kỹ thuật từ PLM qua pipeline offline S5, mang theo nhãn; đứng sau secret-scan + DPIA + cô lập corpus. Không thêm lane, không nhân bản kho.",lk:"S5 · S3"},
+ {id:"11.10",t:"Mượn ý niệm: taxonomy · dashboard · CAPA · change-mgmt · kanban",d:"Chỉ lấy cảm hứng: tổ chức corpus/tag, bảng quan sát cho steward, vòng phản hồi chất-lượng-tri-thức, bản ghi thay đổi, trực quan hàng đợi curate.",lk:"ý niệm"},
+ {id:"11.11",t:"Ranh giới: cái KHÔNG đổi & điều kiện bắt buộc",d:"PLM không thay thế lõi RAG-có-phân-quyền. Điều kiện: TLS bắt buộc, xác nhận air-gap/on-prem, kiểm chứng mô hình truy cập.",lk:"S3"},
+];
+const MATRIX=[
+ [1,"Thành phần phân loại trên đối tượng","Phân loại C1/C2/C3, highest-wins","adopt","Áp dụng ⭐","11.1"],
+ [2,"Trạng thái vòng đời + workflow phê duyệt","Cổng phê chuẩn (ratify) của Data Steward","adopt","Áp dụng ⭐","11.2"],
+ [3,"Versioning (Index) + khoá check-in/out","Version-lineage concept (A.7)","adopt","Áp dụng","11.3"],
+ [4,"Workflow engine (Tasks/Forms/Log)","Điều phối / Task contract (S8)","adopt","Áp dụng","11.2·11.5"],
+ [5,"Organizations/People/Resource Pools/Roles","RBAC permission_group, clearance","adopt","Áp dụng","11.4"],
+ [6,"Audit Log","Audit hash-chain & replay (S3)","adopt","Áp dụng","11.5"],
+ [7,"Saved/faceted search + filter","Phễu truy xuất metadata-first (S6)","adopt","Áp dụng","11.6"],
+ [8,"Requirements/Acceptance Criteria/Templates","Lược đồ OKF có cấu trúc (S4/A.3)","adopt","Áp dụng","11.7"],
+ [9,"Taxonomy tài liệu","Tổ chức corpus/tag","concept","Ý niệm","11.10"],
+ [10,"Dashboard/widget cấu hình","Quan sát/analytics cho steward","concept","Ý niệm","11.10"],
+ [11,"OIDC/SSO + CSRF + phiên","Tích hợp danh tính doanh nghiệp (S3)","integrate","Tích hợp","11.8"],
+ [12,"Quality: Defects + Actions (CAPA)","Vòng phản hồi chất-lượng-tri-thức","concept","Ý niệm","11.10"],
+ [13,"Engineering Change Management","Cập nhật tri thức có kiểm soát thay đổi","concept","Ý niệm","11.10"],
+ [14,"Task Boards (kanban) / Activity stream","Hàng đợi curate của steward","concept","Ý niệm","11.10"],
+ [15,"Documents là source-of-record","Nguồn nạp thượng nguồn cho RAG","integrate","Tích hợp","11.9"],
+ [16,"Parts / BOM / CAD / Materials","— (ngoài phạm vi KMS)","no","Không","—"],
+];
+const FM=[
+ {k:"vsi_data_class",r:"→ payload <code>data_class</code> · PEP-2 + max_data_class · highest-wins"},
+ {k:"vsi_permission_group",r:"→ <code>permission_group</code> (indexed) · <b>PEP-1</b> pre-filter (MatchAny)"},
+ {k:"vsi_owner_project",r:"→ <code>owner_project</code> · cô lập dự án (PEP-2)"},
+ {k:"vsi_required_tags",r:"→ <code>required_tags[]</code> · ABAC (PEP-2)"},
+ {k:"vsi_is_credential",r:"→ <b>CHẶN CỨNG (ranh giới 3)</b> · KHÔNG index, không vào LLM"},
+ {k:"vsi_is_personnel_report",r:"→ <code>is_personnel_report</code> · personnel gate + DPIA (ranh giới 4)"},
+ {k:"vsi_corpus_id",r:"→ <code>corpus_id</code> (FK → corpora) · corpus routing, phải khớp data_class"},
+ {k:"vsi_lane",r:"→ định tuyến lane (C3_ENCLAVE ⇒ in-lane, không egress)"},
+];
+
+// render flow
+const flow=document.getElementById('flow'),stepinfo=document.getElementById('stepinfo');
+FLOW.forEach((s,i)=>{const e=document.createElement('div');e.className='step'+(s.gate?' gate':'');
+ e.innerHTML=`<div class="n">BƯỚC ${s.n}</div><div class="t">${s.t}</div>`;
+ e.onclick=()=>{document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));e.classList.add('active');
+  stepinfo.innerHTML=`<span class="k">Bước ${s.n} — ${s.t}.</span> ${s.d}`;};flow.appendChild(e);});
+
+// boundaries
+const bw=document.getElementById('boundaries');
+BOUND.forEach(b=>{const e=document.createElement('div');e.className='card';
+ e.innerHTML=`<span class="badge ${b.c}">Ranh giới ${b.n}</span><h3 style="margin-top:8px">${b.t}</h3><p>${b.d}</p>`;bw.appendChild(e);});
+
+// lifecycle
+const life=document.getElementById('life'),lifeinfo=document.getElementById('lifeinfo');
+LIFE.forEach((l,i)=>{const e=document.createElement('div');e.className='lstate'+(l.serve?' serve':'');e.textContent=l.s;
+ e.onclick=()=>{document.querySelectorAll('.lstate').forEach(x=>x.classList.remove('active'));e.classList.add('active');
+  lifeinfo.innerHTML=`<div class="kv"><div class="k">Trạng thái</div><div><b>${l.s}</b></div>
+   <div class="k">Ý nghĩa</div><div>${l.mean}</div><div class="k">Index & phục vụ?</div><div>${l.idx}</div>
+   <div class="k">Chuyển dịch</div><div>${l.to}</div><div class="k">Cổng</div><div>${l.gate}</div></div>`;};
+ life.appendChild(e);
+ if(i<LIFE.length-1){const a=document.createElement('span');a.className='arrow';a.textContent='→';life.appendChild(a);}});
+
+// caps accordion
+const caps=document.getElementById('caps');
+CAPS.forEach(c=>{const e=document.createElement('div');e.className='acc';
+ e.innerHTML=`<div class="head"><span><span class="chev">▸</span> <b>${c.id}</b> · ${c.t}</span><span class="lk">${c.lk}</span></div><div class="body"><p style="padding-top:12px">${c.d}</p></div>`;
+ e.querySelector('.head').onclick=()=>e.classList.toggle('open');caps.appendChild(e);});
+
+// matrix + filters
+const VLAB={adopt:"Áp dụng",integrate:"Tích hợp",concept:"Ý niệm",no:"Không"};
+const VCLS={adopt:"v-adopt",integrate:"v-integrate",concept:"v-concept",no:"v-no"};
+const mb=document.getElementById('matrixbody'),filters=document.getElementById('filters');
+let curFilter="all";
+function renderMatrix(){mb.innerHTML="";MATRIX.filter(r=>curFilter==="all"||r[3]===curFilter).forEach(r=>{
+ const tr=document.createElement('tr');
+ tr.innerHTML=`<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="verd ${VCLS[r[3]]}">${r[4]}</span></td><td>${r[5]}</td>`;
+ mb.appendChild(tr);});}
+[["all","Tất cả"],["adopt","Áp dụng"],["integrate","Tích hợp"],["concept","Ý niệm"],["no","Không"]].forEach(([v,lab],i)=>{
+ const b=document.createElement('button');b.className='fbtn'+(i===0?' active':'');b.textContent=lab;
+ b.onclick=()=>{curFilter=v;document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderMatrix();};
+ filters.appendChild(b);});
+renderMatrix();
+
+// frontmatter map
+const fmk=document.getElementById('fmkeys'),fmt=document.getElementById('fmtargets');
+FM.forEach((f,i)=>{const k=document.createElement('div');k.className='fmkey';k.textContent=f.k;
+ const t=document.createElement('div');t.className='fmtarget';t.innerHTML=f.r;
+ k.onclick=()=>{document.querySelectorAll('.fmkey').forEach(x=>x.classList.remove('hot'));
+  document.querySelectorAll('.fmtarget').forEach(x=>x.classList.remove('hot'));k.classList.add('hot');t.classList.add('hot');};
+ fmk.appendChild(k);fmt.appendChild(t);});
+
+// scrollspy
+const links=[...document.querySelectorAll('nav.side a[href^="#"]')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+ const id='#'+e.target.id;links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===id));}});},
+ {rootMargin:"-30% 0px -60% 0px"});
+secs.forEach(s=>s&&io.observe(s));
+</script>
+</body>
+</html>
